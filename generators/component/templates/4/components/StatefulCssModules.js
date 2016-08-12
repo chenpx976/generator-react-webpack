@@ -1,9 +1,8 @@
-import React from 'react';<% if(componentHasStyles) { %>
+import React from 'react';
 import cssmodules from 'react-css-modules';
-import styles from '<%= style.webpackPath %>';<% } %>
+import styles from '<%= style.webpackPath %>';
 
-<% if(componentHasStyles) { %>@cssmodules(styles)
-<% } %>class <%= component.className %> extends React.Component {
+class <%= component.className %> extends <%= component.classBase %> {
 
   render() {
     return (
@@ -18,4 +17,4 @@ import styles from '<%= style.webpackPath %>';<% } %>
 <%= component.className %>.propTypes = {};
 <%= component.className %>.defaultProps = {};
 
-export default <%= component.className %>;
+export default cssmodules(<%= component.className %>, styles);

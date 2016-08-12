@@ -3,6 +3,7 @@
 const path = require('path');
 const configUtils = require('./config');
 const _ = require('underscore.string');
+const C = require('./constants');
 
 // Needed directory paths
 const baseName = path.basename(process.cwd());
@@ -19,10 +20,11 @@ let getBaseDir = () => {
  * Get all settings (paths and the like) from components name
  * @param {String} componentName The components name
  * @param {String} style Style language to use [optional]
+ * @param {Boolean} isPure Use a pure component? [optional]
  * @param {String|Number} generatorVersion The version of the generator [optional]
  * @return {Object} Component settings
  */
-let getAllSettingsFromComponentName = (componentName, style, generatorVersion) => {
+let getAllSettingsFromComponentName = (componentName, style, useCssModules, isPure, generatorVersion) => {
 
   // Use css per default
   if(!style) {
@@ -60,9 +62,9 @@ let getAllSettingsFromComponentName = (componentName, style, generatorVersion) =
     case 4:
       settings = {
         style: {
-          webpackPath: `./${componentBaseName.toLowerCase()}.cssmodule${styleSettings.suffix}`,
+          webpackPath: `./${componentBaseName.toLowerCase()}${useCssModules ? '.cssmodule' : ''}${styleSettings.suffix}`,
           path: path.normalize(`${componentPath.path}/${componentPartPath}/`),
-          fileName: `${componentBaseName.toLowerCase()}.cssmodule${styleSettings.suffix}`,
+          fileName: `${componentBaseName.toLowerCase()}${useCssModules ? '.cssmodule' : ''}${styleSettings.suffix}`,
           className: getComponentStyleName(componentBaseName),
           suffix: styleSettings.suffix
         },
@@ -71,6 +73,7 @@ let getAllSettingsFromComponentName = (componentName, style, generatorVersion) =
           path: path.normalize(`${componentPath.path}/${componentPartPath}/`),
           fileName: `${componentBaseName}.js`,
           className: `${componentBaseName}`,
+          classBase: isPure ? 'React.PureComponent' : 'React.Component',
           displayName: `${componentFullName}`,
           suffix: '.js'
         },
@@ -197,12 +200,32 @@ let getDestinationClassName = (name, type, suffix) => {
   return _.capitalize(fixedName.split('/').pop().split('.js')[0]);
 };
 
+/**
+ * Get the filename of the component template to copy.
+ * @param {boolean} isStateless
+ * @param {boolean} useStyles
+ * @param {boolean} useCssModules
+ * @return {string} The template filename including the .js suffix
+ */
+let getComponentTemplateName = (isStateless, useStyles, useCssModules) => {
+  const componentTypeFrag = isStateless ? C.COMP_TYPES.STATELESS : C.COMP_TYPES.STATEFUL;
+  const styleTypeFrag = !useStyles
+    ? C.STYLE_TYPES.NO_STYLES
+    : useCssModules
+      ? C.STYLE_TYPES.WITH_CSSMODULES
+      : C.STYLE_TYPES.WITH_STYLES
+    ;
+
+  return `${componentTypeFrag}${styleTypeFrag}.js`;
+};
+
 module.exports = {
   getBaseDir,
   getAllSettingsFromComponentName,
   getAppName,
   getCleanedPathName,
   getComponentStyleName,
+  getComponentTemplateName,
   getDestinationPath,
   getDestinationClassName
 };
